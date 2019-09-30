@@ -48,22 +48,37 @@ void SerialPortController::run()
         std::cout << "Empfangen: " << message.toStdString() << std::endl;
 
         // ############### VERARBEITUNG ####################
-        char data;
-        if (message.at(0) == 'Q') {
-            m_status_remoteStatus = 1;
-            data = parseStatus();
-        }
-
-        // ############### AUSGABE ####################
         QByteArray returnmessage;
         returnmessage.append(message.at(0));
-        returnmessage.append(data);
+
+        if (message.at(0) == 'Q') {
+            m_status_remoteStatus = 1;
+            returnmessage.append(parseStatus());
+        } else if (message.at(0) == 'N' && message.at(1) == 'D') {
+            returnmessage.append("D7.2.0");
+        } else if (message.at(0) == 'E' && message.at(1) == 'A') {
+            m_status_ready          = 0;
+            m_status_armed          = 0;
+            m_status_standby        = 1;
+            returnmessage.append('@');
+        } else if (message.at(0) == 'E' && message.at(1) == 'B') {
+            m_status_armed          = 1;
+            m_status_standby        = 0;
+            returnmessage.append('@');
+        }else {
+            returnmessage.append('?');
+        }
+
+
+        // ############### AUSGABE ####################
+
+
         char crc = calcCRC(returnmessage);
         returnmessage = returnmessage + crc;
 
         porto.write(returnmessage);
 //        porto.waitForBytesWritten(300);
-        std::cout << "- Gesendet: " << message.at(0) << (int) parseStatus() << crc << std::endl;
+        std::cout << "- Gesendet: " << returnmessage.toStdString() << std::endl;
     }
 
     // If we get here, it's time to shutdown the serial port controller
