@@ -51,20 +51,40 @@ void SerialPortController::run()
         QByteArray returnmessage;
         returnmessage.append(message.at(0));
 
+        // --- Connect
         if (message.at(0) == 'Q') {
             m_status_remoteStatus = 1;
             returnmessage.append(parseStatus());
+
+        // --- Version
         } else if (message.at(0) == 'N' && message.at(1) == 'D') {
-            returnmessage.append("D7.2.0");
+            //            returnmessage.append("V7.2.00");
+            returnmessage.append((char) 86);
+            returnmessage.append((char) 55);
+            returnmessage.append((char) 46);
+            returnmessage.append((char) 50);
+            returnmessage.append((char) 32);
+            returnmessage.append((char) 0);
+            returnmessage.append((char) 164);
+
+        // --- IgnoreCoilSafetySwitch
+        } else if (message.at(0) == 'b' && message.at(1) == '@') {
+            returnmessage.append((char) 352);
+
+        // --- Disarm
         } else if (message.at(0) == 'E' && message.at(1) == 'A') {
             m_status_ready          = 0;
             m_status_armed          = 0;
             m_status_standby        = 1;
             returnmessage.append('@');
+
+        // --- Arm
         } else if (message.at(0) == 'E' && message.at(1) == 'B') {
             m_status_armed          = 1;
             m_status_standby        = 0;
-            returnmessage.append('@');
+            returnmessage.append('‰');
+
+        // --- Not understood
         }else {
             returnmessage.append('?');
         }
