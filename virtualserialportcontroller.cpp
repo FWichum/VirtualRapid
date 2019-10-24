@@ -31,7 +31,12 @@ void SerialPortController::run()
     porto.setPortName(this->m_address);
 
     bool ok = porto.open(QIODevice::ReadWrite);
-    std::cout << "Oeffne Port: " << (int) ok << std::endl;
+    std::cout << "Oeffne Port " << this->m_address.toStdString() << " : ";
+    if(ok) {
+        std::cout << "Erfolgreich" << std::endl;
+    } else {
+        std::cout << "Failed" << std::endl;
+    }
     std::cout << "------------------------------------" << std::endl;
     porto.setBaudRate(QSerialPort::Baud9600);
     porto.setDataBits(QSerialPort::Data8);
@@ -65,7 +70,7 @@ void SerialPortController::run()
             returnmessage.append((char) 50);
             returnmessage.append((char) 32);
             returnmessage.append((char) 0);
-            returnmessage.append((char) 164);
+//            returnmessage.append((char) 164);
 
         // --- IgnoreCoilSafetySwitch
         } else if (message.at(0) == 'b' && message.at(1) == '@') {
@@ -76,13 +81,13 @@ void SerialPortController::run()
             m_status_ready          = 0;
             m_status_armed          = 0;
             m_status_standby        = 1;
-            returnmessage.append('@');
+            returnmessage.append(parseStatus());
 
         // --- Arm
         } else if (message.at(0) == 'E' && message.at(1) == 'B') {
             m_status_armed          = 1;
             m_status_standby        = 0;
-            returnmessage.append('‰');
+            returnmessage.append(parseStatus());
 
         // --- Not understood
         }else {
