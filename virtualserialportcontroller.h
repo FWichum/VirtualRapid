@@ -79,8 +79,15 @@ private:
     int m_status_armed;
     int m_status_standby;
 
+    int m_power;
+    int m_frequency;
+    int m_npulses;
+    int m_duration;
+    int m_wait;
+
     char parseStatus();
     char calcCRC(QByteArray command);
+    void parseParameters(QByteArray &message);
 public slots:
     //=========================================================================================================
     /**

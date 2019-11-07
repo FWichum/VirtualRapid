@@ -18,6 +18,12 @@ SerialPortController::SerialPortController(QString serialConnection)
     m_status_armed          = 0;
     m_status_standby        = 1;
 
+    m_power         = 30;
+    m_frequency     = 42;
+    m_npulses       = 31;
+    m_duration      = 21;
+    m_wait          = 18;
+
     this->m_address = serialConnection;
 }
 
@@ -76,6 +82,17 @@ void SerialPortController::run()
         } else if (message.at(0) == 'b' && message.at(1) == '@') {
             returnmessage.append((char) 352);
 
+        // --- GetParameters
+        } else if (message.at(0) == 92 ) { //&& message.at(1) == 92) {
+            parseParameters(returnmessage);
+
+        // --- SetPower
+        } else if (message.at(0) == '@') {
+            int newPower = message.mid(1,3).toInt();
+            m_power = newPower;
+//            parseParameters(returnmessage);
+            returnmessage.append(parseStatus());
+
         // --- Disarm
         } else if (message.at(0) == 'E' && message.at(1) == 'A') {
             m_status_ready          = 0;
@@ -87,6 +104,12 @@ void SerialPortController::run()
         } else if (message.at(0) == 'E' && message.at(1) == 'B') {
             m_status_armed          = 1;
             m_status_standby        = 0;
+            returnmessage.append(parseStatus());
+
+        // --- Disconnect
+        } else if (message.at(0) == 'R') {
+            m_status_armed          = 0;
+            m_status_standby        = 1;
             returnmessage.append(parseStatus());
 
         // --- Not understood
@@ -127,6 +150,20 @@ char SerialPortController::parseStatus()
     status = (status << 1) |  m_status_standby;
 
     return (char) status;
+}
+
+//*************************************************************************************************************
+
+void SerialPortController::parseParameters(QByteArray &message)
+{
+    message.append(parseStatus());
+    message.append('9');
+    message.append(QString("%1").arg(m_power, 3, 10, QChar('0')));
+    message.append(QString("%1").arg(m_frequency*10, 4, 10, QChar('0')));
+    message.append(QString("%1").arg(m_npulses, 4, 10, QChar('0')));
+    message.append(QString("%1").arg(m_duration*10, 3, 10, QChar('0')));
+    message.append(QString("%1").arg(m_wait*10, 4, 10, QChar('0')));
+    return;
 }
 
 
