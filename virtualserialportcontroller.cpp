@@ -52,6 +52,8 @@ void SerialPortController::run()
     // Make sure the RTS pin is set to off
     porto.setRequestToSend(false);
 
+    connect(&porto, &QSerialPort::requestToSendChanged, this, &SerialPortController::QuickFire);
+
     while (true) {
         // ############### EINGABE ####################
         porto.waitForReadyRead(-1);
@@ -174,6 +176,16 @@ void SerialPortController::updateSerialWriteQueue(sendInfo info)
     // This locker will lock the mutex until it is destroyed, i.e. when this function call goes out of scope
     QMutexLocker locker(&m_mutex);
     this->m_serialWriteQueue.push(info);
+}
+
+//*************************************************************************************************************
+
+void SerialPortController::QuickFire(bool shot)
+{
+    if (!shot) {
+        std::cout << "QuickFire" << std::endl;
+        Beep(520,100);
+    }
 }
 
 
